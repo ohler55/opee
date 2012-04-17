@@ -1,6 +1,22 @@
 # Opee gem
 An experimental Object-base Parallel Evaluation Environment
 
+The purpose of this gem is to explore setting up an environment that will run
+completely in parallel with minimum use of mutex synchronization. Actors only
+push the flow forward, never returning values when using the ask()
+method. Other methods return immediately but they should never modify the data
+portions of the Actors. They can be used to modify the control of the Actor.
+
+# plans
+
+- create an error handler that prints or logs rescued exceptions (::Opee::Log class)
+
+- pick a problem to test against
+
+- describe patterns for use
+
+- Is the notion of a job needed to follow processing of an initial input?
+ - avoid using job for storing data though unless rules can be set up to isolate portions of the data to a specific processing path
 
 ### License:
 
