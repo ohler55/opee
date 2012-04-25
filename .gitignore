@@ -1,0 +1,13 @@
+opee-*.gem
+.DS_Store
+\#*\#
+.\#*
+*~
+*.o
+Makefile
+*.bundle
+.rbenv-version
+*.rbc
+.rbx
+doc
+.yardoc

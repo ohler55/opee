@@ -7,9 +7,20 @@ push the flow forward, never returning values when using the ask()
 method. Other methods return immediately but they should never modify the data
 portions of the Actors. They can be used to modify the control of the Actor.
 
+Once a reasonable API has been established a high performance C extension will
+be written to improve performance.
+
 # plans
 
 - create an error handler that prints or logs rescued exceptions (::Opee::Log class)
+ - create an Env class or module
+  - it creates a Log instance
+  - Actor.new should add itself to Env
+ - Log
+  - allow forward attribute to be set that forwards messages to another Actor
+  - turn output off (useful when there is a forward actor)
+
+- implement a design pattern for a shared work queue
 
 - pick a problem to test against
 

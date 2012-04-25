@@ -35,6 +35,15 @@ class Opeet < ::Test::Unit::TestCase
     a.start()
     sleep(0.2)
     assert_equal(7, a.last_data)
+    a.close()
+  end
+
+  def test_log
+    #::Opee::Env.logger.ask(:severity=, Logger::INFO)
+    ::Opee::Env.logger.severity= Logger::INFO
+    ::Opee::Env.log(Logger::INFO, "hello")
+    ::Opee::Env.each_actor { |a| puts a.to_s }
+    sleep(0.2)
   end
 
 end # Opeet

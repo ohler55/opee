@@ -9,6 +9,7 @@ module Opee
       @ask_timeout = 0.0
       @max_queue_count = nil
       @running = true
+      Env.add_actor(self)
       set_options(options)
       @loop = Thread.start(self) do |me|
         begin
@@ -40,6 +41,10 @@ module Opee
       @loop.wakeup() if @running
     end
 
+    def method_missing(m, *args, &blk)
+      ask(m, *args)
+    end
+
     def queue_count()
       @queue.length
     end
@@ -51,6 +56,11 @@ module Opee
     def start()
       @running = true
       @loop.wakeup()
+    end
+
+    def close()
+      @running = false
+      Env.remove_actor(self)
     end
 
     private
