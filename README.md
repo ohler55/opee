@@ -10,7 +10,12 @@ portions of the Actors. They can be used to modify the control of the Actor.
 Once a reasonable API has been established a high performance C extension will
 be written to improve performance.
 
+This is no where close to being ready for prime time.
+
 # plans
+
+- Env
+ - need method to close and wait for all actors to finish
 
 - create an error handler that prints or logs rescued exceptions (::Opee::Log class)
  - create an Env class or module
