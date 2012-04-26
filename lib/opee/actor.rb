@@ -2,29 +2,56 @@
 module Opee
 
   class Actor
+    STOPPED = 0
+    RUNNING = 1
+    CLOSING = 2
+    STEP    = 3
 
     def initialize(options={})
       @queue = []
+      @idle = []
+      @priority = []
       @ask_mutex = Mutex.new()
+      @priority_mutex = Mutex.new()
+      @idle_mutex = Mutex.new()
+      @step_thread = nil
       @ask_timeout = 0.0
       @max_queue_count = nil
-      @running = true
+      @state = RUNNING
       Env.add_actor(self)
       set_options(options)
       @loop = Thread.start(self) do |me|
-        begin
-          sleep(1.0) if @queue.empty?
-          unless @queue.empty?
-            a = nil
-            @ask_mutex.synchronize {
-              a = @queue.pop()
-            }
-            send(a.op, *a.args)
+        while CLOSING != @state
+          begin
+            if RUNNING == @state || STEP == @state
+              a = nil
+              if !@priority.empty?
+                @priority_mutex.synchronize {
+                  a = @priority.pop()
+                }
+              elsif !@queue.empty?
+                @ask_mutex.synchronize {
+                  a = @queue.pop()
+                }
+              elsif !@idle.empty?
+                @idle_mutex.synchronize {
+                  a = @idle.pop()
+                }
+              else
+                Env.wake_finish()
+                sleep(1.0)
+              end
+              send(a.op, *a.args) unless a.nil?
+              if STEP == @state
+                @step_thread.wakeup() unless @step_thread.nil?
+                @state = STOPPED
+              end
+            elsif STOPPED == @state
+              sleep(1.0)
+            end
+          rescue Exception => e
+            Env.log_rescue(e)
           end
-        rescue Exception => e
-          # TBD handle errors by passing them to a error handler
-          puts "*** #{e.class}: #{e.message}"
-          e.backtrace.each { |line| puts "    " + line }
         end
       end
     end
@@ -38,7 +65,21 @@ module Opee
       @ask_mutex.synchronize {
         @queue << Act.new(op, args)
       }
-      @loop.wakeup() if @running
+      @loop.wakeup() if RUNNING == @state
+    end
+
+    def on_idle(op, *args)
+      @idle_mutex.synchronize {
+        @idle << Act.new(op, args)
+      }
+      @loop.wakeup() if RUNNING == @state
+    end
+
+    def priority_ask(op, *args)
+      @priority_mutex.synchronize {
+        @priority << Act.new(op, args)
+      }
+      @loop.wakeup() if RUNNING == @state
     end
 
     def method_missing(m, *args, &blk)
@@ -46,21 +87,35 @@ module Opee
     end
 
     def queue_count()
-      @queue.length
+      @queue.length + @priority.length + @idle.length
     end
 
     def stop()
-      @running = false
+      @state = STOPPED
+    end
+
+    def step(max_wait=5)
+      @state = STEP
+      @step_thread = Thread.current
+      @loop.wakeup()
+      sleep(max_wait)
     end
 
     def start()
-      @running = true
+      @state = RUNNING
       @loop.wakeup()
     end
 
     def close()
-      @running = false
+      @state = CLOSING
+      begin
+        # if the loop has already exited this will raise an Exception that can be ignored
+        @loop.wakeup()
+      rescue
+        # ignore
+      end
       Env.remove_actor(self)
+      @loop.join()
     end
 
     private

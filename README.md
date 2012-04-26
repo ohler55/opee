@@ -12,27 +12,42 @@ be written to improve performance.
 
 This is no where close to being ready for prime time.
 
-# plans
+# Plans and Notes
 
 - Env
- - need method to close and wait for all actors to finish
+ - test
+  - create and close actors and make sure each_actor changes
+  - test logger return Log instance
+  - queue_count
+  - start/stop
+  - wait_close
 
-- create an error handler that prints or logs rescued exceptions (::Opee::Log class)
- - create an Env class or module
-  - it creates a Log instance
-  - Actor.new should add itself to Env
- - Log
+- Log
   - allow forward attribute to be set that forwards messages to another Actor
   - turn output off (useful when there is a forward actor)
+  - test
+   - set formatter and stringio and test env methods
+   - test forwarding
+
+- Actor
 
 - implement a design pattern for a shared work queue
+ - queue is an actor
+ - place items on queue either as normal ask sequence or special mutex protected queue
+  - if normal then wait for a request for a job and send a job to requestor
 
 - pick a problem to test against
+ - checkers
+ - process some kind of file
+ - process random numbers to produce something
+ - life
 
 - describe patterns for use
 
 - Is the notion of a job needed to follow processing of an initial input?
  - avoid using job for storing data though unless rules can be set up to isolate portions of the data to a specific processing path
+ - need something for sharing large chunks of data
+  - maybe just another actor
 
 ### License:
 

@@ -5,24 +5,7 @@ $: << File.join(File.dirname(__FILE__), "../lib")
 
 require 'test/unit'
 require 'opee'
-
-class Relay < ::Opee::Actor
-  attr_reader :last_data
-
-  def initialize(buddy)
-    super
-    @buddy = buddy
-    @last_data = nil
-  end
-  
-  private
-
-  def relay(data)
-    @last_data = data
-    @buddy.ask(:relay, data) unless @buddy.nil?
-  end
-
-end # Relay
+require 'relay'
 
 class Opeet < ::Test::Unit::TestCase
 
@@ -33,7 +16,7 @@ class Opeet < ::Test::Unit::TestCase
     a.ask(:relay, 7)
     assert_equal(1, a.queue_count())
     a.start()
-    sleep(0.2)
+    sleep(0.5)
     assert_equal(7, a.last_data)
     a.close()
   end
@@ -44,6 +27,14 @@ class Opeet < ::Test::Unit::TestCase
     ::Opee::Env.log(Logger::INFO, "hello")
     ::Opee::Env.each_actor { |a| puts a.to_s }
     sleep(0.2)
+  end
+
+  def test_wait_close
+    a = ::Relay.new(nil)
+    a.ask(:relay, 7)
+    ::Opee::Env.wait_close()
+    assert_equal(7, a.last_data)
+    a.close()
   end
 
 end # Opeet
