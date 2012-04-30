@@ -12,7 +12,7 @@ require 'relay'
 class OpeeTest < ::Test::Unit::TestCase
 
   def test_opee_actor_queue
-    a = ::Relay.new(nil)
+    a = ::Relay.new()
     assert_equal(0, a.queue_count())
     a.stop()
     a.ask(:relay, 5)
@@ -23,7 +23,7 @@ class OpeeTest < ::Test::Unit::TestCase
   end
 
   def test_opee_actor_ask
-    a = ::Relay.new(nil)
+    a = ::Relay.new()
     a.ask(:relay, 7)
     sleep(0.5) # minimize dependencies for simplest possible test
     assert_equal(7, a.last_data)
@@ -31,7 +31,7 @@ class OpeeTest < ::Test::Unit::TestCase
   end
 
   def test_opee_actor_method_missing
-    a = ::Relay.new(nil)
+    a = ::Relay.new()
     a.relay(7)
     ::Opee::Env.wait_close()
     assert_equal(7, a.last_data)
@@ -39,13 +39,13 @@ class OpeeTest < ::Test::Unit::TestCase
   end
 
   def test_opee_actor_raise_after_close
-    a = ::Relay.new(nil)
+    a = ::Relay.new()
     a.close()
     assert_raise(ThreadError) { a.start() }
   end
 
   def test_opee_actor_priority
-    a = ::Relay.new(nil)
+    a = ::Relay.new()
     a.priority_ask(:relay, 7)
     ::Opee::Env.wait_close()
     assert_equal(7, a.last_data)
@@ -53,7 +53,7 @@ class OpeeTest < ::Test::Unit::TestCase
   end
 
   def test_opee_actor_idle
-    a = ::Relay.new(nil)
+    a = ::Relay.new()
     a.on_idle(:relay, 7)
     ::Opee::Env.wait_close()
     assert_equal(7, a.last_data)
@@ -61,7 +61,7 @@ class OpeeTest < ::Test::Unit::TestCase
   end
 
   def test_opee_actor_order
-    a = ::Relay.new(nil)
+    a = ::Relay.new()
     a.stop()
     a.on_idle(:relay, 17)
     a.priority_ask(:relay, 3)

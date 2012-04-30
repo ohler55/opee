@@ -12,15 +12,16 @@ be written to improve performance.
 
 This is no where close to being ready for prime time.
 
-# Plans and Notes
+## <a name="release">Release Notes</a>
 
-- Env
- - test
-  - create and close actors and make sure each_actor changes
-  - test logger return Log instance
-  - queue_count
-  - start/stop
-  - wait_close
+### Release 0.0.3
+
+ - Filled out Env and Actor tests.
+
+ - Fixed ordering problem with method execution.
+
+
+# Plans and Notes
 
 - Log
   - allow forward attribute to be set that forwards messages to another Actor
@@ -29,6 +30,7 @@ This is no where close to being ready for prime time.
    - set formatter and stringio and test env methods
    - test forwarding
 
+- Env
 - Actor
 
 - implement a design pattern for a shared work queue

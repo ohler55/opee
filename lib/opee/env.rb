@@ -18,6 +18,10 @@ module Opee
       @@actors.each { |a| blk.yield(a) }
     end
 
+    def self.actor_count()
+      @@actors.size
+    end
+
     def self.shutdown()
       until @@actors.empty?
         a = @@actors.pop()
@@ -62,6 +66,7 @@ module Opee
 
     def self.wait_finish()
       @@finish_thread = Thread.current
+      @@actors.each { |a| a.wakeup() }
       while 0 < queue_count()
         sleep(0.2) # actors should wake up when queue is empty
       end

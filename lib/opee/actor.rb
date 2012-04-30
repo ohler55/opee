@@ -63,21 +63,21 @@ module Opee
     # deep copy and freeze args if not already frozen or primitive types
     def ask(op, *args)
       @ask_mutex.synchronize {
-        @queue << Act.new(op, args)
+        @queue.insert(0, Act.new(op, args))
       }
       @loop.wakeup() if RUNNING == @state
     end
 
     def on_idle(op, *args)
       @idle_mutex.synchronize {
-        @idle << Act.new(op, args)
+        @idle.insert(0, Act.new(op, args))
       }
       @loop.wakeup() if RUNNING == @state
     end
 
     def priority_ask(op, *args)
       @priority_mutex.synchronize {
-        @priority << Act.new(op, args)
+        @priority.insert(0, Act.new(op, args))
       }
       @loop.wakeup() if RUNNING == @state
     end
@@ -99,6 +99,10 @@ module Opee
       @step_thread = Thread.current
       @loop.wakeup()
       sleep(max_wait)
+    end
+
+    def wakeup()
+      @loop.wakeup()
     end
 
     def start()
