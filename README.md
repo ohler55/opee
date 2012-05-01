@@ -12,37 +12,34 @@ be written to improve performance.
 
 This is no where close to being ready for prime time.
 
+Any comments, thoughts, or suggestions are welcome.
+
 ## <a name="release">Release Notes</a>
 
-### Release 0.0.3
+### Release 0.0.4
 
- - Filled out Env and Actor tests.
+ - Filling in the Log class and unit tests for it.
 
- - Fixed ordering problem with method execution.
-
+ - Added WorkQueue but have not tested it yet.
 
 # Plans and Notes
 
-- Log
-  - allow forward attribute to be set that forwards messages to another Actor
-  - turn output off (useful when there is a forward actor)
-  - test
-   - set formatter and stringio and test env methods
-   - test forwarding
-
-- Env
-- Actor
-
-- implement a design pattern for a shared work queue
- - queue is an actor
- - place items on queue either as normal ask sequence or special mutex protected queue
-  - if normal then wait for a request for a job and send a job to requestor
+- WorkQueue test tc_opee_workqueue
 
 - pick a problem to test against
- - checkers
- - process some kind of file
- - process random numbers to produce something
- - life
+ - file density distribution
+  - find all files under a directory
+  - detemine if the file is a text or bin file and only keep text files
+  - read in the text file and on work queue
+  - worker determines density of file (non-white/total)
+  - pass on to summary actor
+  - wait_finish
+  - ask to print or write report
+
+- implement Actor max_queue_count limiter
+ - test with actor that reports queue size and pauses for 0.1 seconds
+ - try to send too many requests at it so it has to report busy
+
 
 - describe patterns for use
 

@@ -83,6 +83,7 @@ module Opee
     end
 
     def method_missing(m, *args, &blk)
+      raise NoMethodError.new("undefine method '#{m}' for #{self.class}", m, args) unless respond_to?(m, true)
       ask(m, *args)
     end
 

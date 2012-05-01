@@ -38,6 +38,12 @@ class OpeeTest < ::Test::Unit::TestCase
     a.close()
   end
 
+  def test_opee_actor_really_missing
+    a = ::Relay.new()
+    assert_raise(NoMethodError) { a.xray(7) }
+    a.close()
+  end
+
   def test_opee_actor_raise_after_close
     a = ::Relay.new()
     a.close()

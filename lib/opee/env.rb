@@ -27,11 +27,32 @@ module Opee
         a = @@actors.pop()
         a.close()
       end
+      @@log = nil
     end
 
     def self.log(severity, message)
       @@log = Log.new() if @@log.nil?
       @@log.ask(:log, severity, message)
+    end
+
+    def self.debug(message)
+      log(Logger::Severity::DEBUG, message)
+    end
+
+    def self.info(message)
+      log(Logger::Severity::INFO, message)
+    end
+
+    def self.warn(message)
+      log(Logger::Severity::WARN, message)
+    end
+
+    def self.error(message)
+      log(Logger::Severity::ERROR, message)
+    end
+
+    def self.fatal(message)
+      log(Logger::Severity::FATAL, message)
     end
 
     def self.log_rescue(ex)
@@ -89,6 +110,7 @@ module Opee
         break if 0 == queue_count()
         start()
       end
+      @@log = nil
       until @@actors.empty?
         a = @@actors.pop()
         a.close()
