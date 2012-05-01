@@ -16,7 +16,7 @@ module Opee
     private
 
     def set_options(options)
-      raise "A method for for processing jobs must be specified" if (@method = options[:method]).nil?
+      raise MissingOptionError.new(:method, "for processing jobs") if (@method = options[:method]).nil?
     end
 
     def add(job)

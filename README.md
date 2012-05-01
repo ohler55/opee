@@ -26,6 +26,14 @@ Any comments, thoughts, or suggestions are welcome.
 
 - WorkQueue test tc_opee_workqueue
 
+- implement Actor max_queue_count limiter
+ - test with actor that reports queue size and pauses for 0.1 seconds
+ - try to send too many requests at it so it has to report busy
+ - use timeout and wait until queue size drops
+ - add method to get/set timeout
+ - add timed_ask(timeout, op, *args)
+  - overrides default actor timeout
+
 - pick a problem to test against
  - file density distribution
   - find all files under a directory
@@ -35,11 +43,6 @@ Any comments, thoughts, or suggestions are welcome.
   - pass on to summary actor
   - wait_finish
   - ask to print or write report
-
-- implement Actor max_queue_count limiter
- - test with actor that reports queue size and pauses for 0.1 seconds
- - try to send too many requests at it so it has to report busy
-
 
 - describe patterns for use
 
