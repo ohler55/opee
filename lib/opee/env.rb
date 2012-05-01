@@ -49,6 +49,12 @@ module Opee
       @@log
     end
 
+    def self.logger=(log_actor)
+      @@log.close() unless @@log.nil?
+      @@log = log_actor
+      @@log
+    end
+
     def self.queue_count()
       cnt = 0
       @@actors.each { |a| cnt += a.queue_count() }
