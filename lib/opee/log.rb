@@ -27,6 +27,7 @@ module Opee
     # picked up by the Actor method_missing() method.
 
     def set_options(options)
+      super(options)
       if !(filename = options[:filename]).nil?
         max_file_size = options.fetch(:max_file_size, options.fetch(:shift_size, 1048576))
         max_file_count = options.fetch(:max_file_count, options.fetch(:shift_age, 7))

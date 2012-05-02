@@ -81,4 +81,11 @@ class OpeeTest < ::Test::Unit::TestCase
     a.close()
   end
 
+  def test_opee_actor_max_queue_count
+    a = ::Relay.new(:max_queue_count => 4, :ask_timeout => 1.0)
+    10.times { |i| a.ask(:slow, 0.1) }
+    ::Opee::Env.wait_close()
+    assert(4 > a.last_data.max)
+  end
+
 end # OpeeTest

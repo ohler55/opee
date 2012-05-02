@@ -12,6 +12,7 @@ class Relay < ::Opee::Actor
   end
   
   def set_options(options)
+    super(options)
     @buddy = options[:buddy]
   end
 
@@ -20,6 +21,12 @@ class Relay < ::Opee::Actor
   def relay(data)
     @last_data = data
     @buddy.ask(:relay, data) unless @buddy.nil?
+  end
+
+  def slow(delay)
+    @last_data = [] unless @last_data.is_a?(Array)
+    @last_data << queue_count()
+    sleep(delay)
   end
 
 end # Relay
