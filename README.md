@@ -25,6 +25,16 @@ Any comments, thoughts, or suggestions are welcome.
 # Plans and Notes
 
 - pick a problem to test against
+ - drop file path into dir_wq
+ - pick up and decompose
+  - if dir then drop into queue again
+  - if file then send to filter actor
+   - may need to read start to determine text if no extention
+    - check for #! something and assume text/script
+    - if not one of know extension then search low chars that are not \n\r\t or other well knows in text
+    - cache text if file is read in
+  - if text send to through work queue density checker then to summary
+
  - file density distribution
   - find all files under a directory
   - detemine if the file is a text or bin file and only keep text files
