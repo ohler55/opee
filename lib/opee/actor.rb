@@ -19,6 +19,7 @@ module Opee
       @max_queue_count = nil
       @ask_thread = nil
       @state = RUNNING
+      @busy = false
       Env.add_actor(self)
       set_options(options)
       @loop = Thread.start(self) do |me|
@@ -43,7 +44,9 @@ module Opee
                 Env.wake_finish()
                 sleep(1.0)
               end
+              @busy = true
               send(a.op, *a.args) unless a.nil?
+              @busy = false
               if STEP == @state
                 @step_thread.wakeup() unless @step_thread.nil?
                 @state = STOPPED
@@ -102,6 +105,10 @@ module Opee
 
     def queue_count()
       @queue.length + @priority.length + @idle.length
+    end
+
+    def busy?
+      @busy || !@queue.empty? || !@priority.empty? || !@idle.empty?
     end
 
     def ask_timeout()

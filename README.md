@@ -16,16 +16,13 @@ Any comments, thoughts, or suggestions are welcome.
 
 ## <a name="release">Release Notes</a>
 
-### Release 0.0.4
+### Release 0.0.5
 
- - Filling in the Log class and unit tests for it.
+ - Added tests for WorkQueue.
 
- - Added WorkQueue but have not tested it yet.
+ - Added busy method to Actor.
 
 # Plans and Notes
-
-- WorkQueue test tc_opee_workqueue
- - implement max job count
 
 - pick a problem to test against
  - file density distribution
@@ -38,11 +35,6 @@ Any comments, thoughts, or suggestions are welcome.
   - ask to print or write report
 
 - describe patterns for use
-
-- Is the notion of a job needed to follow processing of an initial input?
- - avoid using job for storing data though unless rules can be set up to isolate portions of the data to a specific processing path
- - need something for sharing large chunks of data
-  - maybe just another actor
 
 ### License:
 

@@ -1,5 +1,5 @@
 
 module Opee
   # Current version of the module. 
-  VERSION = '0.0.4'
+  VERSION = '0.0.5'
 end

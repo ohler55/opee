@@ -14,3 +14,4 @@ end # OpeeTest
 require 'tc_opee_actor'
 require 'tc_opee_log'
 require 'tc_opee_env'
+require 'tc_opee_workqueue'

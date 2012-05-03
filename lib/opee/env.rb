@@ -82,6 +82,11 @@ module Opee
       cnt
     end
 
+    def self.busy?
+      @@actors.each { |a| return true if a.busy? }
+      false
+    end
+
     def self.stop()
       @@actors.each { |a| a.stop() }
     end
@@ -94,7 +99,7 @@ module Opee
     def self.wait_finish()
       @@finish_thread = Thread.current
       @@actors.each { |a| a.wakeup() }
-      while 0 < queue_count()
+      while busy?
         sleep(0.2) # actors should wake up when queue is empty
       end
     end

@@ -16,6 +16,29 @@ module Opee
       @work_queue.size
     end
 
+    def worker_count()
+      @workers.size
+    end
+
+    def busy?
+      !@work_queue.empty? || super
+    end
+
+    def ask(op, *args)
+      if :add == op && 0 < @max_job_count && (@work_queue.size() + @queue.size()) >= @max_job_count
+        unless 0.0 >= @job_timeout
+          @add_thread = Thread.current
+          give_up_at = Time.now + @job_timeout
+          until Time.now > give_up_at || (@work_queue.size() + @queue.size()) < @max_job_count
+            sleep(@job_timeout)
+          end
+          @add_thread = nil
+        end
+        raise BusyError.new() unless @work_queue.size() < @max_job_count
+      end
+      super
+    end
+
     private
 
     def set_options(options)
@@ -25,17 +48,7 @@ module Opee
       @job_timeout = options.fetch(:job_timeout, @job_timeout)
     end
 
-    def ask(op, *args)
-      if :add == op && 0 < @max_job_count && @work_queue.size() >= @max_job_count
-        @add_thread = Thread.current
-        sleep(@job_timeout) unless 0.0 >= @job_timeout
-        @add_thread = nil
-        raise BusyError.new() unless @work_queue.size() < @max_job_count
-      end
-      super
-    end
-
-    def add(job, timeout=3.0)
+    def add(job)
       if @workers.empty?
         @work_queue.insert(0, job)
       else
