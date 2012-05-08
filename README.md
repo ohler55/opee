@@ -1,5 +1,5 @@
 # Opee gem
-An experimental Object-base Parallel Evaluation Environment
+An experimental Object-based Parallel Evaluation Environment
 
 The purpose of this gem is to explore setting up an environment that will run
 completely in parallel with minimum use of mutex synchronization. Actors only
@@ -43,6 +43,8 @@ Any comments, thoughts, or suggestions are welcome.
   - pass on to summary actor
   - wait_finish
   - ask to print or write report
+
+- write a Collector and FanOut Actor class
 
 - describe patterns for use
 
