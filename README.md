@@ -28,6 +28,8 @@ Any comments, thoughts, or suggestions are welcome.
 
 # Plans and Notes
 
+- document classes and methods
+
 - pick a problem to test against
  - drop file path into dir_wq
  - pick up and decompose
@@ -49,6 +51,7 @@ Any comments, thoughts, or suggestions are welcome.
   - ask to print or write report
 
 - write a Collector and FanOut Actor class
+ - figure out how to deal with common context, maybe with a job class or some common method
 
 - describe patterns for use
 
