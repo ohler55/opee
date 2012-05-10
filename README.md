@@ -14,6 +14,10 @@ This is no where close to being ready for prime time.
 
 Any comments, thoughts, or suggestions are welcome.
 
+## <a name="links">Links of Interest</a>
+
+[Not Your Usual Threading](http://www.ohler.com/dev/http://www.ohler.com/dev/not_your_usual_threading/not_your_usual_threading.html) discussion about how OPEE use changes the way multi-threaded systems are designed.
+
 ## <a name="release">Release Notes</a>
 
 ### Release 0.0.5
