@@ -20,15 +20,17 @@ Any comments, thoughts, or suggestions are welcome.
 
 ## <a name="release">Release Notes</a>
 
-### Release 0.0.5
+### Release 0.1.0
 
- - Added tests for WorkQueue.
+ - Documented classes.
 
- - Added busy method to Actor.
+ - Added a rescuer attribute to the Env for global error handling.
+
+ - Added Collector and Job classes.
 
 # Plans and Notes
 
-- document classes and methods
+- add name or label to Actors so they can be discovered by name or symbol
 
 - pick a problem to test against
  - drop file path into dir_wq
@@ -49,11 +51,6 @@ Any comments, thoughts, or suggestions are welcome.
   - pass on to summary actor
   - wait_finish
   - ask to print or write report
-
-- write a Collector and FanOut Actor class
- - figure out how to deal with common context, maybe with a job class or some common method
-
-- describe patterns for use
 
 ### License:
 
