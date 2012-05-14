@@ -93,7 +93,7 @@ module Opee
     # {#ask_timeout} to determine how long to wait if the Actor's queue is full.
     # @param [Fixnum|Float] timeout maximum time to wait trying to add a request to the Actor's queue
     # @param [Symbol] op method to queue for the Actor
-    # @param [Array] *args arguments to the op method
+    # @param [Array] args arguments to the op method
     # @raise [BusyError] if the request queue does not become available in the timeout specified
     def timeout_ask(timeout, op, *args)
       unless @max_queue_count.nil? || 0 == @max_queue_count || @queue.size() < @max_queue_count
@@ -110,7 +110,7 @@ module Opee
 
     # Queues an operation and arguments to be called when the Actor is ready.
     # @param [Symbol] op method to queue for the Actor
-    # @param [Array] *args arguments to the op method
+    # @param [Array] args arguments to the op method
     # @raise [BusyError] if the request queue does not become available in the {#ask_timeout} seconds
     def ask(op, *args)
       timeout_ask(@ask_timeout, op, *args)
@@ -119,7 +119,7 @@ module Opee
     # Queues an operation and arguments to be called when the Actor is has no
     # other requests to process.
     # @param [Symbol] op method to queue for the Actor
-    # @param [Array] *args arguments to the op method
+    # @param [Array] args arguments to the op method
     def on_idle(op, *args)
       @idle_mutex.synchronize {
         @idle.insert(0, Act.new(op, args))
@@ -130,7 +130,7 @@ module Opee
     # Queues an operation and arguments to be called as soon as possible by
     # the Actor. These requests take precedence over other ordinary requests.
     # @param [Symbol] op method to queue for the Actor
-    # @param [Array] *args arguments to the op method
+    # @param [Array] args arguments to the op method
     def priority_ask(op, *args)
       @priority_mutex.synchronize {
         @priority.insert(0, Act.new(op, args))
@@ -142,7 +142,7 @@ module Opee
     # places on the processing queue. Other methods cause a NoMethodError to
     # be raised as it normally would.
     # @param [Symbol] m method to queue for the Actor
-    # @param [Array] *args arguments to the op method
+    # @param [Array] args arguments to the op method
     # @param [Proc] blk ignored
     def method_missing(m, *args, &blk)
       raise NoMethodError.new("undefine method '#{m}' for #{self.class}", m, args) unless respond_to?(m, true)
