@@ -57,7 +57,7 @@ module Opee
       formatter = options[:formatter] if options.has_key?(:formatter)
     end
 
-    # Writes a message if the severity is high enough.  This method is
+    # Writes a message if the severity is high enough. This method is
     # executed asynchronously.
     # @param [Fixnum] severity one of the Logger levels
     # @param [String] message string to log

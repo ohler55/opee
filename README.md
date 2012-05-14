@@ -26,7 +26,7 @@ Any comments, thoughts, or suggestions are welcome.
 
  - Added a rescuer attribute to the Env for global error handling.
 
- - Added Collector and Job classes.
+ - Added Collector and Job classes along with unit tests.
 
 # Plans and Notes
 

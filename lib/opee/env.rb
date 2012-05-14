@@ -106,7 +106,7 @@ module Opee
     def self.rescue(ex)
       begin
         log_rescue(ex)
-        @rescuer.rescue(ex) unless @rescuer.nil?
+        @@rescuer.rescue(ex) unless @@rescuer.nil?
       rescue Exception => e
         puts "*** #{e.class}: #{e.message}"
         e.backtrace.each { |line| puts "   " + line }
