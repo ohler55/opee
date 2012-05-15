@@ -10,9 +10,13 @@ portions of the Actors. They can be used to modify the control of the Actor.
 Once a reasonable API has been established a high performance C extension will
 be written to improve performance.
 
-This is no where close to being ready for prime time.
+Give it a try. Any comments, thoughts, or suggestions are welcome.
 
-Any comments, thoughts, or suggestions are welcome.
+## <a name="source">Source</a>
+
+*GitHub* *repo*: https://github.com/ohler55/opee
+
+*RubyGems* *repo*: https://rubygems.org/gems/opee
 
 ## <a name="links">Links of Interest</a>
 
@@ -20,37 +24,17 @@ Any comments, thoughts, or suggestions are welcome.
 
 ## <a name="release">Release Notes</a>
 
-### Release 0.1.0
+### Release 1.0.0
 
- - Documented classes.
+ - Added names to Actors
 
- - Added a rescuer attribute to the Env for global error handling.
+ - Use Actor name in log messages if set
 
- - Added Collector and Job classes along with unit tests.
+ - Added Actor lookup by name
 
 # Plans and Notes
 
-- add name or label to Actors so they can be discovered by name or symbol
-
-- pick a problem to test against
- - drop file path into dir_wq
- - pick up and decompose
-  - if dir then drop into queue again
-  - if file then send to filter actor
-   - may need to read start to determine text if no extention
-    - check for #! something and assume text/script
-    - if not one of know extension then search low chars that are not \n\r\t or other well knows in text
-    - cache text if file is read in
-  - if text send to through work queue density checker then to summary
-
- - file density distribution
-  - find all files under a directory
-  - detemine if the file is a text or bin file and only keep text files
-  - read in the text file and on work queue
-  - worker determines density of file (non-white/total)
-  - pass on to summary actor
-  - wait_finish
-  - ask to print or write report
+- implement in C if there is enough interest
 
 ### License:
 

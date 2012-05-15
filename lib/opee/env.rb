@@ -43,6 +43,16 @@ module Opee
       @@actors.each { |a| blk.yield(a) }
     end
 
+    # Locates and return an Actor with the specified name. If there is more
+    # than one Actor with the name specified then the first one encountered is
+    # returned.
+    # @param [String] name name of the Actor
+    # @return [Actor|NilClass] the Actor with the name specified or nil
+    def self.find_actor(name)
+      @@actors.each { |a| return a if name == a.name }
+      nil
+    end
+
     # Returns the number of active Actors.
     def self.actor_count()
       @@actors.size
@@ -62,7 +72,13 @@ module Opee
     # @param [String] message string to log
     def self.log(severity, message)
       @@log = Log.new() if @@log.nil?
-      @@log.ask(:log, severity, message)
+      t = Thread.current
+      if (name = t[:name]).nil?
+        tid = "%d/0x%014x" % [Process.pid, Thread.current.object_id * 2]
+      else
+        tid = "#{Process.pid}/#{name}"
+      end
+      @@log.ask(:log, severity, message, tid)
     end
 
     # Asks the logger to log a message if the current severity level is less

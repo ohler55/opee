@@ -9,19 +9,21 @@ module Opee
     def initialize(options={})
       @logger = nil
       @forward = nil
+      @formatter = nil
       super(options)
     end
 
     # Returns the current severity level.
     # @return [Fixnum] Logger severity level
-    def level()
+    def severity()
       @logger.level
     end
+    alias :level :severity
 
     # Returns the current formatter.
     # @return [Logger::Formatter] current formatter
     def formatter()
-      @logger.formatter
+      @formatter
     end
 
     # Returns the forward Log Actor if one has been set.
@@ -53,17 +55,27 @@ module Opee
       else
         @logger = Logger.new(STDOUT)
       end
-      severity = options[:severity] if options.has_key?(:severity)
-      formatter = options[:formatter] if options.has_key?(:formatter)
+      @logger.severity = options[:severity] if options.has_key?(:severity)
+      @formatter = options.fetch(:formatter, nil)
+      @logger.formatter = proc { |s,t,p,m| m }
     end
 
     # Writes a message if the severity is high enough. This method is
     # executed asynchronously.
     # @param [Fixnum] severity one of the Logger levels
     # @param [String] message string to log
-    def log(severity, message)
-      @logger.add(severity, message)
-      @forward.log(severity, message) unless @forward.nil?
+    # @param [Fixnum|String] tid thread id of the thread generating the message
+    def log(severity, message, tid)
+      now = Time.now
+      ss = ['DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL'][severity]
+      ss = '' if ss.nil?
+      if @formatter.nil?
+        msg = "#{ss[0]}, [#{now.strftime('%Y-%m-%dT%H:%M:%S.%6N')} ##{tid}]  #{ss} -- : #{message}\n"
+      else
+        msg = @formatter.call(ss, now, tid, message)
+      end
+      @logger.add(severity, msg)
+      @forward.log(severity, message, tid) unless @forward.nil?
     end
 
     # Sets the logger to use the stream specified. This method is executed
@@ -126,7 +138,7 @@ module Opee
     # asynchronously.
     # @param [Proc] proc value to set the formatter to
     def formatter=(proc)
-      @logger.formatter = proc
+      @formatter = proc
     end
 
   end # Log

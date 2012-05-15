@@ -16,6 +16,8 @@ module Opee
 
     # The current processing state of the Actor
     attr_reader :state
+    # name of the actor
+    attr_reader :name
 
     # Initializes the Actor with the options specified. A new thread is
     # created during intialization after calling the set_options() method.
@@ -37,9 +39,11 @@ module Opee
       @ask_thread = nil
       @state = RUNNING
       @busy = false
+      @name = nil
       Env.add_actor(self)
       set_options(options)
       @loop = Thread.start(self) do |me|
+        Thread.current[:name] = me.name
         while CLOSING != @state
           begin
             if RUNNING == @state || STEP == @state
@@ -87,6 +91,14 @@ module Opee
     def set_options(options)
       @max_queue_count = options.fetch(:max_queue_count, @max_queue_count)
       @ask_timeout = options.fetch(:ask_timeout, @ask_timeout).to_f
+      @name = options[:name]
+    end
+
+    # Sets the name of the Actor.
+    # @param [String] name new name
+    def name=(name)
+      @name = name
+      @loop[:name] = name
     end
 
     # Calls {#ask}() but uses the specified timeout instead of the default

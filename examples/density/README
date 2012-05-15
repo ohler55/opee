@@ -1,0 +1,22 @@
+
+This example iterates over a directory and all the sub-directories and
+calculates the desity of all the text files in those directories. It then
+averages the densities and displays the average. The density is defined as the
+percentage of non-white space compared to the total number of characters in
+the file.
+
+The flow or connectivity of the Actors in the system are described by the
+diagram that follows. The notation of a (n) indicates multiple instance of
+that Actor.
+
+
+dir_wq and calc_wq are WorkQueue Objects
+
+    <top dir path> -> dir_wq -> Reader(n) -<file>-> calc_wq -> Calculator(n) -> Summary
+                   ^                      -<dir>->
+                   |                              |
+                   |------------------------------|
+
+Run the program as follows
+
+    density.rb ../.. -v
