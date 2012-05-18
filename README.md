@@ -24,13 +24,9 @@ Give it a try. Any comments, thoughts, or suggestions are welcome.
 
 ## <a name="release">Release Notes</a>
 
-### Release 1.0.0
+### Release 1.0.1
 
- - Added names to Actors
-
- - Use Actor name in log messages if set
-
- - Added Actor lookup by name
+ - Fixed bug in Exception handling
 
 # Plans and Notes
 
