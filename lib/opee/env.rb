@@ -120,6 +120,7 @@ module Opee
     # rescue() method is called.
     # @param [Exception] ex Exception to handle
     def self.rescue(ex)
+      puts "*** rescue"
       begin
         log_rescue(ex)
         @@rescuer.rescue(ex) unless @@rescuer.nil?
@@ -141,7 +142,7 @@ module Opee
       if Logger::Severity::WARN >= @@log.level
         ex.backtrace.each { |line| msg << "    #{line}\n" }
       end
-      @@log.ask(:log, Logger::Severity::ERROR, msg)
+      log(Logger::Severity::ERROR, msg)
     end
 
     # Returns the current Log Actor. If the current logger is nil then a new

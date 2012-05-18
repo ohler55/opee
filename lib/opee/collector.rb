@@ -41,6 +41,7 @@ module Opee
     # Actor or if it should wait until more processing paths have
     # finished. This method is executed asynchronously.
     # @param [Job|Object] job data to process or pass on
+    # @param [Object] path_id identifier of the path the request came from
     def collect(job, path_id=nil)
       key = job_key(job)
       token = @cache[key]
@@ -95,7 +96,7 @@ module Opee
         job.keep_going()
       else
         # TBD @next_actor = Env.find_actor(@next_actor) if @next_actor.is_a?(Symbol)
-        @next_actor.send(@next_method, job)
+        @next_actor.send(@next_method, job) unless @next_actor.nil? || @next_method.nil?
       end
     end
 

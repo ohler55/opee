@@ -77,6 +77,7 @@ module Opee
             end
           rescue Exception => e
             Env.rescue(e)
+            @busy = false
           end
         end
       end
