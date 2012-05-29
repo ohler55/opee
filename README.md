@@ -24,9 +24,9 @@ Give it a try. Any comments, thoughts, or suggestions are welcome.
 
 ## <a name="release">Release Notes</a>
 
-### Release 1.0.1
+### Release 1.0.2
 
- - Fixed bug in Exception handling
+ - Added AskQueue which serves up method invocations instead of jobs.
 
 # Plans and Notes
 

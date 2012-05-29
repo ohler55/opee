@@ -120,7 +120,6 @@ module Opee
     # rescue() method is called.
     # @param [Exception] ex Exception to handle
     def self.rescue(ex)
-      puts "*** rescue"
       begin
         log_rescue(ex)
         @@rescuer.rescue(ex) unless @@rescuer.nil?

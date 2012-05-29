@@ -158,7 +158,7 @@ module Opee
     # @param [Array] args arguments to the op method
     # @param [Proc] blk ignored
     def method_missing(m, *args, &blk)
-      raise NoMethodError.new("undefine method '#{m}' for #{self.class}", m, args) unless respond_to?(m, true)
+      raise NoMethodError.new("undefined method '#{m}' for #{self.class}", m, args) unless respond_to?(m, true)
       ask(m, *args)
     end
 
