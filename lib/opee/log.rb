@@ -58,6 +58,7 @@ module Opee
       @logger.severity = options[:severity] if options.has_key?(:severity)
       @formatter = options.fetch(:formatter, nil)
       @logger.formatter = proc { |s,t,p,m| m }
+      @name = 'Logger' if @name.nil?
     end
 
     # Writes a message if the severity is high enough. This method is

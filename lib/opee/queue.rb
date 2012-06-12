@@ -79,7 +79,7 @@ module Opee
 
     # Identifies a worker as available to process jobs when they become
     # available. This method is executed asynchronously.
-    # @param [Actor] worker Actor that responds to the {#method}
+    # @param [Actor] worker Actor that responds to the method to be called
     def ready(worker)
       if @work_queue.empty?
         @workers.insert(0, worker) unless @workers.include?(worker)

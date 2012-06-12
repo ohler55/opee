@@ -24,9 +24,11 @@ Give it a try. Any comments, thoughts, or suggestions are welcome.
 
 ## <a name="release">Release Notes</a>
 
-### Release 1.0.2
+### Release 1.0.3
 
- - Added AskQueue which serves up method invocations instead of jobs.
+ - Added periodic status output to info mode.
+
+ - Set logger name.
 
 # Plans and Notes
 
