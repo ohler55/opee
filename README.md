@@ -24,11 +24,9 @@ Give it a try. Any comments, thoughts, or suggestions are welcome.
 
 ## <a name="release">Release Notes</a>
 
-### Release 1.0.3
+### Release 1.0.4
 
- - Added periodic status output to info mode.
-
- - Set logger name.
+ - Fixed a bug in queue size reporting for the Queue class.
 
 # Plans and Notes
 

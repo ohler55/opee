@@ -26,6 +26,13 @@ module Opee
       @workers.size
     end
 
+    # Returns the number of requests on all three request queues, the normal,
+    # priority, and idle queues as well as the work queue.
+    # @return [Fixnum] number of queued requests
+    def queue_count()
+      @work_queue.size + super()
+    end
+
     # Returns the true if any requests are queued, a request is being
     # processed, or if there are jobs waiting on the work request queue.
     # @return [true|false] true if busy, false otherwise
