@@ -206,16 +206,16 @@ module Opee
     # Waits for all Actors to complete processing. The method only returns
     # when all Actors indicate they are no longer busy.
     def self.wait_finish()
-      next_time = Time.now + 2.0
+      next_time = Time.now + 5.0
       @@finish_thread = Thread.current
       @@actors.each { |a| a.wakeup() }
       while busy?
         sleep(0.2) # actors should wake up when queue is empty
-        if Logger::INFO >= @@log.severity
+        if Logger::DEBUG >= @@log.severity
           now = Time.now
           if next_time <= now
             log_status()
-            next_time = now + 2.0
+            next_time = now + 5.0
           end
         end
       end
