@@ -20,7 +20,9 @@ Give it a try. Any comments, thoughts, or suggestions are welcome.
 
 ## <a name="links">Links of Interest</a>
 
-[Not Your Usual Threading](http://www.ohler.com/dev/http://www.ohler.com/dev/not_your_usual_threading/not_your_usual_threading.html) discussion about how OPEE use changes the way multi-threaded systems are designed.
+[Not Your Usual Threading](http://www.ohler.com/dev/not_your_usual_threading/not_your_usual_threading.html) discussion about how OPEE use changes the way multi-threaded systems are designed.
+
+[Open Remote Encrypted File Synchronization](http://www.ohler.com/orefs) is a sample application that makes use of the Opee gem.
 
 ## <a name="release">Release Notes</a>
 
