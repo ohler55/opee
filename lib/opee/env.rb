@@ -138,7 +138,7 @@ module Opee
       @@log = Log.new() if @@log.nil?
       return unless Logger::Severity::ERROR >= @@log.level
       msg = "#{ex.class}: #{ex.message}"
-      if Logger::Severity::WARN >= @@log.level
+      if Logger::Severity::INFO >= @@log.level
         ex.backtrace.each { |line| msg << "    #{line}\n" }
       end
       log(Logger::Severity::ERROR, msg)
