@@ -15,49 +15,64 @@ module ODisk
   class SocketInspector
     attr_accessor :acceptThread
     attr_accessor :buf
+    
 
     def initialize(port)
       @acceptThread = Thread.start() do
         server = TCPServer.new port
         loop do
           Thread.start(server.accept()) do |con|
-            # TBD keep track of telnet mode
-            char_mode = false
             buf = ""
+            con.puts("Welcome to the Inspector\r")
+            con.print("\xff\xfd\x03\xff\xfd\x01") # ask to be character at a time mode
+            con.print("> ")
             while line = con.recv(100)
-              break if 0 == line.size()
-              c = line[-1]
-              o = c.ord()
-              puts "[#{o}] #{line.size()}"
-              
-              buf += line
-              case o
-              when 4
-                break
-              when 63 # ?
-                if 1 == buf.size()
-                  help(con)
-                else
-                  help(con)
-                  # options
-                end
-              when 9 # tab
-                # completions
-              when 0 # client in single character mode
-                # execute and reset buf
-                char_mode = true
-                con.puts("\r")
-                break if exe_cmd(con, buf.chop().strip())
-                buf = ""
-              when 10, 13 # end of line \r or \n
-                # execute and reset buf
-                cmd = buf.chop().strip()
-                break if exe_cmd(con, cmd)
-                buf = ""
+              len = line.size()
+              break if 0 == len
+
+              line.each_byte { |x| print("#{x} ") }
+              puts "[#{line.size()}]"
+
+              # determine input type (telnet command, char mode, line mode)
+              o1 = line[0].ord()
+              if 255 == o1
+                handle_telnet_command(con, line)
+                next
               end
-              # build command
-              # if ? then offer completion options
-              puts "buf: #{buf}"
+              if 1 == len || (2 == len && "\000" == line[1]) # single char mode
+                # TBD use case here instead
+                case o1
+                when 4
+                  break
+                when 63 # ?
+                  help(con, buf)
+                  con.print("> ")
+                when 8, 127 # backspace or delete
+                  buf.chop!()
+                  con.putc(8)
+                  con.putc(" ")
+                  con.putc(8)
+                when 9 # tab
+                  # completions
+                when 13 # line termination
+                  cmd = buf.strip()
+                  buf = ""
+                  con.puts("\r")
+                  break if exe_cmd(con, cmd)
+                  con.print("> ")
+                else
+                  con.putc(line[0])
+                  buf << line[0]
+                end
+              else # line mode
+                buf << line
+                if 2 <= buf.size() && 13 == buf[-2].ord && 10 == buf[-1].ord
+                  cmd = buf.strip()
+                  buf = ""
+                  break if exe_cmd(con, cmd)
+                  con.print("> ")
+                end
+              end
             end
             con.close
           end
@@ -65,23 +80,67 @@ module ODisk
       end # Thread
     end
     
-    def help(con)
-      con.puts("you are on your own for now")
+    def handle_telnet_command(con, line)
+      # TBD be smarter and really handle correctly
+      con.print("\xff\xfb\x03\xff\xfb\x01") # ask to be character at a time mode
+    end
+
+    def help(con, line)
+      con.puts("Commands:\r")
+      OPS.each do |key,op|
+        if nil == op.args
+          con.puts("  #{op.op} - #{op.short_help}\r")
+        else
+          con.puts("  #{op.op} #{op.args} - #{op.short_help}\r")
+        end
+      end
     end
 
     def exe_cmd(con, cmd)
       return if 0 == cmd.size()
-      if "bye" == cmd
-        return true
+      key, arg_str = cmd.split(" ", 2)
+      key.downcase!()
+      op = OPS[key]
+      if nil != op
+        return send(op.fun, con, arg_str)
+      else
+        con.puts("Command #{cmd} not implemented yet\r")
       end
-      if "exit" == cmd
-        puts "Exiting"
-        @acceptThread.exit()
-        return true
-      end
-      con.puts("Command #{cmd} not implemented yet\r")
       false
     end
+
+    def bye(con, line)
+      return true
+    end
+
+    def exit(con, line)
+      puts "Exiting"
+      @acceptThread.exit()
+      return true
+    end
+
+    class Op
+      attr_accessor :op
+      attr_accessor :fun
+      attr_accessor :args
+      attr_accessor :short_help
+      attr_accessor :long_help
+
+      def initialize(op, fun, args, short_help, long_help)
+        @op = op
+        @args = args
+        @fun = fun
+        @short_help = short_help
+        @long_help = long_help
+      end
+    end # Op
+
+    OPS = {
+      "help" => Op.new("help", :bye, "[<command>]", "Help on command or all commands", nil),
+      "bye" => Op.new("bye", :bye, nil, "closes the connection", nil),
+      "exit" => Op.new("exit", :exit, nil, "shuts down the application", nil),
+    }
+
 
   end # SocketInspector
 end # ODisk
