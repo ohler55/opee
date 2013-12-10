@@ -1,15 +1,7 @@
-#!/usr/bin/env ruby
-# encoding: UTF-8
-
-# Ubuntu does not accept arguments to ruby when called using env. To get warnings to show up the -w options is
-# required. That can be set in the RUBYOPT environment variable.
-# export RUBYOPT=-w
-
-$VERBOSE = true
 
 require 'socket'
 
-module ODisk
+module Opee
   # Creates a Digest Object for specified directories and passes on the result
   # to a Opee::Collector.
   class SocketInspector
@@ -44,6 +36,9 @@ module ODisk
                 case o1
                 when 4
                   break
+                when 16 # ^p
+                  # TBD up history stack
+                  buf = ""
                 when 63 # ?
                   help(con, buf)
                   con.print("> ")
@@ -110,14 +105,49 @@ module ODisk
     end
 
     def bye(con, line)
-      return true
+      true
     end
 
-    def exit(con, line)
-      puts "Exiting"
+    def shutdown(con, line)
+      puts "Shutting down"
       @acceptThread.exit()
-      return true
+      Env.shutdown()
+      true
     end
+
+    def actor_count(con, line)
+      con.puts("There are currently #{Opee::Env.actor_count()} active Actors.\r")
+      false
+    end
+
+    def queue_count(con, line)
+      con.puts("There are currently #{Opee::Env.queue_count()} unprocessed requests queued.\r")
+      false
+    end
+
+    def busy(con, line)
+      if Opee::Env.busy?()
+        con.puts("One or more actors is busy.\r")
+      else
+        con.puts("All actors are idle.\r")
+      end
+      false
+    end
+
+    def stop(con, line)
+      Opee::Env.stop()
+      con.puts("All Actors stopped(paused).\r")
+      false
+    end
+
+    def start(con, line)
+      Opee::Env.start()
+      con.puts("All Actors restarted.\r")
+      false
+    end
+
+    # TBD status (of all queues)
+    # TBD actor_show
 
     class Op
       attr_accessor :op
@@ -138,13 +168,14 @@ module ODisk
     OPS = {
       "help" => Op.new("help", :bye, "[<command>]", "Help on command or all commands", nil),
       "bye" => Op.new("bye", :bye, nil, "closes the connection", nil),
-      "exit" => Op.new("exit", :exit, nil, "shuts down the application", nil),
+      "shutdown" => Op.new("shutdown", :shutdown, nil, "shuts down the application", nil),
+      "actor_count" => Op.new("actor_count", :actor_count, nil, "returns number of active Actors", nil),
+      "queue_count" => Op.new("queue_count", :queue_count, nil, "returns number of queued requests", nil),
+      "busy" => Op.new("busy", :busy, nil, "returns the busy state of the system", nil),
+      "stop" => Op.new("stop", :stop, nil, "stops all processing", nil),
+      "start" => Op.new("start", :start, nil, "re-starts processing", nil),
     }
 
 
   end # SocketInspector
-end # ODisk
-
-
-inspector = ODisk::SocketInspector.new(5959)
-inspector.acceptThread.join()
+end # Opee

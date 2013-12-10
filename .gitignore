@@ -6,7 +6,7 @@ opee-*.gem
 *.o
 Makefile
 *.bundle
-.rbenv-version
+.ruby-version
 *.rbc
 .rbx
 doc
