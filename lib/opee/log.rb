@@ -125,8 +125,13 @@ module Opee
           'ERROR' => Logger::Severity::ERROR,
           'WARN' => Logger::Severity::WARN,
           'INFO' => Logger::Severity::INFO,
-          'DEBUG' => Logger::Severity::DEBUG
-        }[level]
+          'DEBUG' => Logger::Severity::DEBUG,
+          '4' => Logger::Severity::FATAL,
+          '3' => Logger::Severity::ERROR,
+          '2' => Logger::Severity::WARN,
+          '1' => Logger::Severity::INFO,
+          '0' => Logger::Severity::DEBUG
+        }[level.upcase()]
         raise "#{level} is not a severity" if severity.nil?
         level = severity
       elsif level < Logger::Severity::DEBUG || Logger::Severity::FATAL < level

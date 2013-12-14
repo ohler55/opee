@@ -40,6 +40,7 @@ module Opee
       @state = RUNNING
       @busy = false
       @name = nil
+      @proc_cnt = 0
       Env.add_actor(self)
       set_options(options)
       @loop = Thread.start(self) do |me|
@@ -67,6 +68,7 @@ module Opee
               end
               @busy = true
               send(a.op, *a.args) unless a.nil?
+              @proc_cnt += 1
               @busy = false
               if STEP == @state
                 @step_thread.wakeup() unless @step_thread.nil?
@@ -100,6 +102,21 @@ module Opee
     def name=(name)
       @name = name
       @loop[:name] = name
+    end
+
+    def state_string()
+      ss = 'UNKNOWN'
+      case @state
+      when STOPPED
+        ss = 'STOPPED'
+      when RUNNING
+        ss = 'RUNNING'
+      when CLOSING
+        ss = 'CLOSING'
+      when STEP
+        ss = 'STEP'
+      end
+      ss
     end
 
     # Calls {#ask}() but uses the specified timeout instead of the default
@@ -187,6 +204,12 @@ module Opee
     # @return [NilClass|Fixnum] maximum number of request that can be queued
     def max_queue_count()
       @max_queue_count
+    end
+
+    # Returns the total number of requested processed.
+    # @return [Fixnum] number of request processed
+    def proc_count()
+      @proc_cnt
     end
 
     # Causes the Actor to stop processing any more requests after the current
