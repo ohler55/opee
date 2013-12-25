@@ -224,7 +224,8 @@ module Opee
     # Wakes up the calling thread when an Actor is finished. It is called by
     # the Actor and should not be called by any other code.
     def self.wake_finish()
-      @@finish_thread.wakeup() unless @@finish_thread.nil?
+      # TBD sometimes gets in a strange loop
+      #@@finish_thread.wakeup() unless @@finish_thread.nil?
     end
 
     # Waits until all Actors are not longer busy and then closes all Actors.

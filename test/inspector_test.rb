@@ -9,8 +9,10 @@ $VERBOSE = true
 
 $: << File.join(File.dirname(__FILE__), "../lib")
 
+$: << File.join(File.dirname(__FILE__), "../../oterm/lib")
+
 require 'opee'
 
 
-inspector = Opee::SocketInspector.new(5959)
-inspector.acceptThread.join()
+inspector = Opee::SocketInspector.new(6060)
+inspector.join()

@@ -12,12 +12,8 @@ Gem::Specification.new do |s|
   s.summary = "An experimental Object-base Parallel Evaluation Environment."
   s.description = %{An experimental Object-base Parallel Evaluation Environment. }
 
-  s.files = Dir["{lib,ext,test}/**/*.{rb,h,c}"] + ['LICENSE', 'README.md']
+  s.files = Dir["{lib,test}/**/*.rb"] + ['LICENSE', 'README.md']
 
-  #s.extensions = ["ext/opee/extconf.rb"]
-  # s.executables = []
-
-  #s.require_paths = ["lib", "ext"]
   s.require_paths = ["lib"]
 
   s.has_rdoc = true
@@ -25,4 +21,8 @@ Gem::Specification.new do |s|
   s.rdoc_options = ['--main', 'README.md']
   
   s.rubyforge_project = 'opee'
+
+  s.add_development_dependency 'oterm'
+  s.add_runtime_dependency 'oterm'
+
 end

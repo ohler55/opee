@@ -1,327 +1,322 @@
 
-require 'socket'
+require 'oterm'
 
 module Opee
-  # Creates a Digest Object for specified directories and passes on the result
-  # to a Opee::Collector.
-  class SocketInspector
-    attr_accessor :acceptThread
-    attr_accessor :buf
-    
 
-    def initialize(port)
-      @history = [] # shared across connections
-      @acceptThread = Thread.start() do
-        server = TCPServer.new port
-        loop do
-          # TBD make this a separate console handler class with registered functions and target object.
-          Thread.start(server.accept()) do |con|
-            buf = ""
-            hi = 0 # history pointer
-            con.puts("Welcome to the Inspector\r")
-            con.print("\xff\xfd\x03\xff\xfd\x01") # ask to be character at a time mode
-            con.print("> ")
-            while line = con.recv(100)
-              len = line.size()
-              break if 0 == len
+  class SocketInspector < ::OTerm::Executor
 
-              #line.each_byte { |x| print("#{x} ") }
-              #puts "[#{line.size()}]"
+    def initialize(port=6060)
+      super()
+      register('actor_count', self, :actor_count, 'Returns the number of active Actors.', nil)
+      register('actors', self, :actors, 'Displays a list of all Actor names.', nil)
+      register('busy', self, :busy, 'Returns the busy state of the system.', nil)
+      register('queued', self, :queued, 'Returns the total number of queued requests.', nil)
+      register('show', self, :show, '<actor name> Shows the details of an Actor.',
+               %|[<actor name>] Shows the details of an Actor. Attributes are:
+    name        - identifies the Actor
+    state       - state of the Actor [ STOPPED \| RUNNING \| STEP \| CLOSING ]
+    busy        - true if the Actor has requested queued
+    queued      - number of requested in the queue
+    max queue   - maximum number of requested that can be queued
+    ask timeout - seconds to wait before rejecting an ask
+|)
+      register('start', self, :start, '[<actor name>] Start or restart an Actor.', nil)
+      register('status', self, :status, 'Displays status of all Actors.',
+               %|Displays the Actor name and queued count. If the terminal supports real time
+updates the displays stays active until the X character is pressed. While running
+options are available for sorting on name, activity, or queue size.|)
+      register('step', self, :step, '[<actor name>] Step once.',
+               %|Step once for the actor specfified or once for some actor that is
+waiting if not actor is identified.
+|)
+      register('stop', self, :stop, '[<actor name>] Stops an Actor.', nil)
+      register('verbosity', self, :verbosity, '[<level>] Show or set the verbosity or log level.', nil)
 
-              # determine input type (telnet command, char mode, line mode)
-              o1 = line[0].ord()
-              if 255 == o1
-                handle_telnet_command(con, line)
-                next
-              end
-              if 1 == len || (2 == len && "\000" == line[1]) # single char mode
-                case o1
-                when 0..3, 5..7, 11, 12, 15, 17..31
-                  # ignore
-                when 4
-                  break
-                when 14 # ^n
-                  if 0 < hi && hi <= @history.size()
-                    hi -= 1
-                    blen = buf.size()
-                    if 0 == hi
-                      buf = ""
-                    else
-                      buf = @history[-hi]
-                    end
-                    con.print("\r> " + buf)
-                    # erase to end of line and come back
-                    if buf.size() < blen
-                      dif = blen - buf.size()
-                      con.print(' ' * dif + "\b" * dif)
-                    end
-                  end
-                when 16 # ^p
-                  if hi < @history.size()
-                    hi += 1
-                    blen = buf.size()
-                    buf = @history[-hi]
-                    con.print("\r> " + buf)
-                    # erase to end of line and come back
-                    if buf.size() < blen
-                      dif = blen - buf.size()
-                      con.print(' ' * dif + "\b" * dif)
-                    end
-                  end
-                when 63 # ?
-                  hi = 0
-                  help(con, buf)
-                  con.print("> ")
-                when 8, 127 # backspace or delete
-                  hi = 0
-                  if 0 < buf.size()
-                    buf.chop!()
-                    con.putc(8)
-                    con.putc(" ")
-                    con.putc(8)
-                  end
-                when 9 # tab
-                  hi = 0
-                  # completions
-                when 13 # line termination
-                  hi = 0
-                  cmd = buf.strip()
-                  buf = ""
-                  con.puts("\r")
-                  @history << cmd if 0 < cmd.size() && (0 == @history.size() || @history[-1] != cmd)
-                  break if exe_cmd(con, cmd)
-                  con.print("> ")
-                else
-                  hi = 0
-                  con.putc(line[0])
-                  buf << line[0]
-                end
-              else # line mode
-                buf << line
-                if 2 <= buf.size() && 13 == buf[-2].ord && 10 == buf[-1].ord
-                  cmd = buf.strip()
-                  buf = ""
-                  break if exe_cmd(con, cmd)
-                  con.print("> ")
-                end
-              end
-            end
-            con.close
-          end
-        end
-      end # Thread
-    end
-    
-    def handle_telnet_command(con, line)
-      # TBD be smarter and really handle correctly
-      con.print("\xff\xfb\x03\xff\xfb\x01") # ask to be character at a time mode
+      @server = ::OTerm::Server.new(self, port, false)
     end
 
-    def help(con, line)
-      con.puts("Commands:\r")
-      OPS.each do |key,op|
-        if nil == op.args
-          con.puts("  #{op.op} - #{op.short_help}\r")
-        else
-          con.puts("  #{op.op} #{op.args} - #{op.short_help}\r")
-        end
-      end
+    def join()
+      @server.join()
     end
 
-    def exe_cmd(con, cmd)
-      return if 0 == cmd.size()
-      key, arg_str = cmd.split(" ", 2)
-      key.downcase!()
-      begin
-        op = find_op(key)
-        if nil != op
-          return send(op.fun, con, arg_str)
-        else
-          con.puts("Command #{cmd} not implemented yet\r")
-        end
-      rescue Exception => e
-        puts "*** #{e.class}: #{e.message}"
-      end
-      false
-    end
-
-    def bye(con, line)
-      true
-    end
-
-    def shutdown(con, line)
-      puts "Shutting down"
-      @acceptThread.exit()
+    def shutdown(listener, args)
+      # TBD hangs sometimes and gets in an odd loop sometimes
+      puts "*** shutdown"
       Env.shutdown()
-      true
+      puts "*** Env shutdown completed"
+      super
+      puts "*** OTerm shutdown completed"
     end
 
-    def actor_count(con, line)
-      con.puts("There are currently #{Opee::Env.actor_count()} active Actors.\r")
-      false
+    def greeting()
+      "Welcome to the Inspector."
     end
 
-    def queue_count(con, line)
-      con.puts("There are currently #{Opee::Env.queue_count()} unprocessed requests queued.\r")
-      false
+    def tab(cmd, listener)
+      # TBD depending on the command, try completion on second arg as Actor name
+      super
     end
 
-    def busy(con, line)
-      if Opee::Env.busy?()
-        con.puts("One or more actors is busy.\r")
-      else
-        con.puts("All actors are idle.\r")
+    def actor_count(listener, args)
+      listener.out.pl("There are currently #{Opee::Env.actor_count()} active Actors.")
+    end
+
+    def actors(listener, args)
+      max = 0
+      ::Opee::Env.each_actor() do |a|
+        max = a.name.size if max < a.name.size
       end
-      false
+      ::Opee::Env.each_actor() do |a|
+        listener.out.pl("  %1$*2$s: %3$s" % [a.name, -max, a.class.to_s])
+      end
     end
 
-    def stop(con, line)
-      if nil == line || 0 == line.size()
-        ::Opee::Env.stop()
-        con.puts("All Actors stopped(paused)\r")
+    def queued(listener, args)
+      listener.out.pl("There are currently #{Opee::Env.queue_count()} unprocessed requests queued.")
+    end
+
+    def busy(listener, args)
+      if Opee::Env.busy?()
+        listener.out.pl("One or more actors is busy.")
       else
-        a = ::Opee::Env.find_actor(line)
+        listener.out.pl("All actors are idle.")
+      end
+    end
+
+    def stop(listener, args)
+      if nil == args || 0 == args.size()
+        ::Opee::Env.stop()
+        listener.out.pl("All Actors stopped(paused)")
+      else
+        args.strip!
+        a = ::Opee::Env.find_actor(args)
         if nil == a
-          con.puts("--- Failed to find '#{line}'\r")
+          listener.out.pl("--- Failed to find '#{args}'")
         else
           a.stop()
-          con.puts("#{a.name} stopped(paused)\r")
+          listener.out.pl("#{a.name} stopped(paused)")
         end
       end
-      false
     end
 
-    def start(con, line)
-      if nil == line || 0 == line.size()
+    def start(listener, args)
+      if nil == args || 0 == args.size()
         ::Opee::Env.start()
-        con.puts("All Actors restarted\r")
+        listener.out.pl("All Actors restarted")
       else
-        a = ::Opee::Env.find_actor(line)
+        args.strip!
+        a = ::Opee::Env.find_actor(args)
         if nil == a
-          con.puts("--- Failed to find '#{line}'\r")
+          listener.out.pl("--- Failed to find '#{args}'")
         else
           a.start()
-          con.puts("#{a.name} started\r")
+          listener.out.pl("#{a.name} started")
         end
       end
-      false
     end
 
-    def step(con, line)
+    def step(listener, args)
       la = ::Opee::Env.logger()
       stop_after = false
       if ::Opee::Actor::STOPPED == la.state
         la.start()
         stop_after = true
       end
-      if nil == line || 0 == line.size()
+      if nil == args || 0 == args.size()
+        # TBD be smarter about picking an actor and try not to repeat
         ::Opee::Env.each_actor() do |a|
           if ::Opee::Actor::STOPPED == la.state && 0 < a.queue_count()
             a.step()
-            con.puts("#{a.name} stepped\r")
+            listener.out.pl("#{a.name} stepped")
             break
           end
         end
       else
-        a = ::Opee::Env.find_actor(line)
+        a = ::Opee::Env.find_actor(args)
         if nil == a
-          con.puts("--- Failed to find '#{line}'\r")
+          listener.out.pl("--- Failed to find '#{args}'")
         else
           a.step()
-          con.puts("#{a.name} stepped\r")
+          listener.out.pl("#{a.name} stepped")
         end
       end
       la.stop() if stop_after
-      false
     end
 
-    def status(con, line)
-      con.puts("  %20s  %-11s  %5s  %5s\r" % ['Actor Name', 'Q-cnt/max', 'busy?', 'processed'])
-      ::Opee::Env.each_actor() { |a| con.puts("  %20s  %5d/%-5d  %5s  %5d\r" % [a.name, a.queue_count(), a.max_queue_count().to_i, a.busy?(), a.proc_count()]) }
-      false
-    end
-
-    def verbosity(con, line)
+    def verbosity(listener, args)
       v = ::Opee::Env.logger.severity
-      if nil != line && 0 < line.size()
+      if nil != args && 0 < args.size()
+        args.strip!
         begin
-          v = ::Opee::Env.logger.severity = line
+          v = ::Opee::Env.logger.severity = args
         rescue Exception
-          con.puts("'#{line}' is not a value verbosity\r")
+          listener.out.pl("'#{line}' is not a value verbosity")
         end
       end
-      con.puts("verbosity: #{v}\r")
-      false
+      listener.out.pl("verbosity: #{v}")
     end
 
-    def history(con, line)
-      cnt = 1
-      @history.each { |h| con.puts(" %3d  %s\r" % [cnt, h]); cnt += 1 }
-      false
-    end
-
-    def show(con, line)
-      a = ::Opee::Env.find_actor(line)
+    def show(listener, args)
+      if nil == args
+        listener.out.pl("--- No Actor specified")
+        return
+      end
+      a = ::Opee::Env.find_actor(args)
       if nil == a
-        con.puts("--- Failed to find '#{line}'\r")
+        listener.out.pl("--- Failed to find '#{args}'")
       else
-        con.puts("#{a.name} {\r")
-        con.puts("  state:           #{a.state_string()}\r")
-        con.puts("  busy?:           #{a.busy?()}\r")
-        con.puts("  queued count:    #{a.queue_count()}\r")
-        con.puts("  max queue count: #{a.max_queue_count()}\r")
-        con.puts("  ask timeout:     #{a.ask_timeout()}\r")
-        con.puts("}\r")
+        args.strip!
+        listener.out.pl("#{a.name}:")
+        listener.out.pl("  state:           #{a.state_string()}")
+        listener.out.pl("  busy?:           #{a.busy?()}")
+        listener.out.pl("  queued count:    #{a.queue_count()}")
+        listener.out.pl("  max queue count: #{a.max_queue_count()}")
+        listener.out.pl("  ask timeout:     #{a.ask_timeout()}")
       end
     end
 
-    class Op
-      attr_accessor :op
-      attr_accessor :nickname
-      attr_accessor :fun
-      attr_accessor :args
-      attr_accessor :short_help
-      attr_accessor :long_help
-
-      def initialize(op, nick, fun, args, short_help, long_help)
-        @op = op
-        @nickname = nick
-        @args = args
-        @fun = fun
-        @short_help = short_help
-        @long_help = long_help
+    def status(listener, args)
+      if listener.out.is_vt100?
+        dynamic_status(listener)
+      else
+        listener.out.pl("  %20s  %-11s  %5s  %5s" % ['Actor Name', 'Q-cnt/max', 'busy?', 'processed'])
+        ::Opee::Env.each_actor() do |a|
+          listener.out.pl("  %20s  %5d/%-5d  %5s  %5d" % [a.name, a.queue_count(), a.max_queue_count().to_i, a.busy?(), a.proc_count()])
+        end
       end
-    end # Op
+    end
 
-    def find_op(key)
-      op = OPS[key]
-      if nil == op
-        OPS.each do |k,o|
-          if o.nickname == key
-            op = o
-            break
+    BY_NAME = 'n'
+    BY_ACTIVITY = 'a'
+    BY_QUEUE = 'q'
+
+    def dynamic_status(listener)
+      o = listener.out
+      actors = [] # ActorStat
+      sort_by = BY_NAME
+      rev = false
+      delay = 0.4
+      max = 6
+      ::Opee::Env.each_actor() do |a|
+        actors << ActorStat.new(a)
+        max = a.name.size if max < a.name.size
+      end
+      lines = actors.size + 2
+      h, w = o.screen_size()
+      lines = h - 2 if lines > h - 2
+      o.clear_screen()
+      max_q = w - max - 4
+      done = false
+      while !done
+        actors.each { |as| as.refresh() }
+        case sort_by
+        when BY_NAME
+          if rev
+            actors.sort! { |a,b| b.name <=> a.name }
+          else
+            actors.sort! { |a,b| a.name <=> b.name }
+          end
+        when BY_ACTIVITY
+          if rev
+            actors.sort! { |a,b| a.activity <=> b.activity }
+          else
+            actors.sort! { |a,b| b.activity <=> a.activity }
+          end
+        when BY_QUEUE
+          if rev
+            actors.sort! { |a,b| a.queued <=> b.queued }
+          else
+            actors.sort! { |a,b| b.queued <=> a.queued }
           end
         end
-        OPS[key] = op if nil != op
+        o.set_cursor(1, 1)
+        o.bold()
+        o.p("%1$*2$s @ Queued" % ['Actor', -max])
+        o.attrs_off()
+        i = 2
+        actors[0..lines].each do |as|
+          o.set_cursor(i, 1)
+          o.p("%1$*2$s " % [as.name, -max])
+          o.set_cursor(i, max + 2)
+          case as.activity
+          when 0
+            o.p(' ')
+          when 1
+            o.p('.')
+          when 2, 3
+            o.p('o')
+          else
+            o.p('O')
+          end
+          o.p(' ')
+          qlen = as.queued
+          qlen = max_q if max_q < qlen
+          if 0 < qlen
+            o.reverse()
+            o.p("%1$*2$d" % [as.queued, -qlen])
+            o.attrs_off()
+          end
+          o.clear_to_end()
+          i += 1
+        end
+        o.set_cursor(i, 1)
+        o.bold()
+        o.p('E) exit  N) by name  A) by activity  Q) by queued  R) reverse  ')
+        o.graphic_font()
+        o.p(::OTerm::VT100::PLUS_MINUS)
+        o.default_font()
+        o.p(") faster/slower [%0.1f]" % [delay])
+        o.attrs_off()
+        c = o.recv_wait(1, delay, /./)
+        unless c.nil?
+          case c[0]
+          when 'e', 'E'
+            done = true
+          when 'n', 'N'
+            sort_by = BY_NAME
+            rev = false
+          when 'a', 'A'
+            sort_by = BY_ACTIVITY
+            rev = false
+          when 'q', 'Q'
+            sort_by = BY_QUEUE
+            rev = false
+          when 'r', 'R'
+            rev = !rev
+          when 'f', 'F', '+'
+            delay /= 2.0 unless delay <= 0.1
+          when 's', 'S', '-'
+            delay *= 2.0 unless 3.0 <= delay
+          end
+        end
       end
-      op
+      o.pl()
     end
 
-    OPS = {
-      "actor_count" => Op.new("actor_count", "ac", :actor_count, nil, "returns number of active Actors", nil),
-      "busy" => Op.new("busy", "busy", :busy, nil, "returns the busy state of the system", nil),
-      "bye" => Op.new("bye", "bye", :bye, nil, "closes the connection", nil),
-      "help" => Op.new("help", "h", :bye, "[<command>]", "Help on command or all commands", nil),
-      "history" => Op.new("history", "hist", :history, nil, "show history of commands excuted", nil),
-      "queue_count" => Op.new("queue_count", "qc", :queue_count, nil, "returns number of queued requests", nil),
-      "show" => Op.new("show", "describe", :show, nil, "shows the details of an actor", nil),
-      "shutdown" => Op.new("shutdown", "shutdown", :shutdown, nil, "shuts down the application", nil),
-      "start" => Op.new("start", "restart", :start, "[<actor name>]", "re-starts processing", nil),
-      "status" => Op.new("status", "stat", :status, nil, "displays the status of each actor", nil),
-      "step" => Op.new("step", "next", :step, nil, "steps once", nil),
-      "stop" => Op.new("stop", "pause", :stop, "[<actor name>]", "stops processing", nil),
-      "verbosity" => Op.new("verbosity", "v", :verbosity, "[<level>]", "show or set verbosity", nil),
-    }
+    class ActorStat
+      attr_reader :actor
+      attr_reader :queued
+      attr_reader :activity
+
+      def initialize(a)
+        @actor = a
+        @proc_cnt = a.proc_count()
+        @activity = 0
+        @queued = a.queue_count()
+      end
+
+      def refresh()
+        cnt = @actor.proc_count()
+        @activity = cnt - @proc_cnt
+        @proc_cnt = cnt
+        @queued = @actor.queue_count()
+      end
+
+      def name()
+        @actor.name
+      end
+
+    end # ActorStat
 
   end # SocketInspector
 end # Opee
