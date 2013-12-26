@@ -40,12 +40,8 @@ waiting if not actor is identified.
     end
 
     def shutdown(listener, args)
-      # TBD hangs sometimes and gets in an odd loop sometimes
-      puts "*** shutdown"
-      Env.shutdown()
-      puts "*** Env shutdown completed"
       super
-      puts "*** OTerm shutdown completed"
+      Env.shutdown()
     end
 
     def greeting()
@@ -207,7 +203,7 @@ waiting if not actor is identified.
       o.clear_screen()
       max_q = w - max - 4
       done = false
-      while !done
+      until done
         actors.each { |as| as.refresh() }
         case sort_by
         when BY_NAME

@@ -62,7 +62,11 @@ module Opee
     def self.shutdown()
       until @@actors.empty?
         a = @@actors.pop()
-        a.close()
+        begin
+          a.close()
+        rescue Exception => e
+          puts "*** shutdown error #{e.class}: #{e.message}"
+        end
       end
       @@log = nil
     end
@@ -224,8 +228,13 @@ module Opee
     # Wakes up the calling thread when an Actor is finished. It is called by
     # the Actor and should not be called by any other code.
     def self.wake_finish()
-      # TBD sometimes gets in a strange loop
-      #@@finish_thread.wakeup() unless @@finish_thread.nil?
+      unless @@finish_thread.nil?
+        # if thread has already exited the an exception will be raised. Ignore it.
+        begin
+          @@finish_thread.wakeup() 
+        rescue
+        end
+      end
     end
 
     # Waits until all Actors are not longer busy and then closes all Actors.
