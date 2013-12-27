@@ -186,6 +186,19 @@ module Opee
       @queue.length + @priority.length + @idle.length
     end
 
+    # Returns a score indicating how backed up the queue is. This is used for
+    # selecting an Actor when stepping from the Inspector.
+    def backed_up()
+      cnt = @queue.size()
+      return 0 if 0 == cnt
+      if @max_queue_count.nil? || 0 == @max_queue_count
+        cnt = 80 if 80 < cnt
+        cnt
+      else
+        cnt * 100 / @max_queue_count
+      end
+    end
+
     # Returns the true if any requests are queued or a request is being processed.
     # @return [true|false] true if busy, false otherwise
     def busy?()

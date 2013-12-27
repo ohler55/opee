@@ -49,8 +49,42 @@ waiting if not actor is identified.
     end
 
     def tab(cmd, listener)
-      # TBD depending on the command, try completion on second arg as Actor name
-      super
+      start = cmd.index(' ')
+      if nil == start
+        super
+      else
+        op = cmd[0...start]
+        until cmd.size <= start || ' ' != cmd[start]
+          start += 1
+        end
+        arg = cmd[start..-1]
+
+        if 'show' == op || 'start' == op || 'step' == op || 'stop' == op
+          names = []
+          Env.each_actor { |a| names << a.name if a.name.start_with?(arg) }
+          return if 0 == names.size
+          if 1 == names.size
+            listener.move_col(1000)
+            listener.insert(names[0][arg.size..-1])
+            listener.out.prompt()
+            listener.out.p(listener.buf)
+          else
+            listener.out.pl()
+            names.each do |name|
+              listener.out.pl("#{op} #{name}")
+            end
+            best = best_completion(arg, names)
+            if best == arg
+              listener.update_cmd(0)
+            else
+              listener.move_col(1000)
+              listener.insert(best[arg.size..-1])
+              listener.out.prompt()
+              listener.out.p(listener.buf)
+            end
+          end
+        end
+      end
     end
 
     def actor_count(listener, args)
@@ -119,13 +153,24 @@ waiting if not actor is identified.
         stop_after = true
       end
       if nil == args || 0 == args.size()
-        # TBD be smarter about picking an actor and try not to repeat
+        ma = nil
+        mb = 0
         ::Opee::Env.each_actor() do |a|
-          if ::Opee::Actor::STOPPED == la.state && 0 < a.queue_count()
-            a.step()
-            listener.out.pl("#{a.name} stepped")
-            break
+          next unless ::Opee::Actor::STOPPED == a.state
+          if ma.nil?
+            ma = a
+            mb = ma.backed_up()
+          else
+            b = a.backed_up()
+            if mb < b
+              ma = a 
+              mb = b
+            end
           end
+        end
+        unless ma.nil? || 0 == ma.queue_count()
+          ma.step()
+          listener.out.pl("#{ma.name} stepped")
         end
       else
         a = ::Opee::Env.find_actor(args)

@@ -215,7 +215,7 @@ module Opee
       @@actors.each { |a| a.wakeup() }
       while busy?
         sleep(0.2) # actors should wake up when queue is empty
-        if Logger::DEBUG >= @@log.severity
+        if !@@log.nil? && Logger::DEBUG >= @@log.severity
           now = Time.now
           if next_time <= now
             log_status()
@@ -237,7 +237,7 @@ module Opee
       end
     end
 
-    # Waits until all Actors are not longer busy and then closes all Actors.
+    # Waits until all Actors are no longer busy and then closes all Actors.
     def self.wait_close()
       while 0 < queue_count()
         wait_finish()
