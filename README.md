@@ -26,13 +26,13 @@ Give it a try. Any comments, thoughts, or suggestions are welcome.
 
 ## <a name="release">Release Notes</a>
 
-### Release 1.0.4
+### Release 1.1.0
 
- - Fixed a bug in queue size reporting for the Queue class.
+ - Added Inspector that uses the OTerm for real time interaction with Actors.
 
 # Plans and Notes
 
-- implement in C if there is enough interest
+- Implement in C if there is enough interest
 
 ### License:
 
