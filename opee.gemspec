@@ -22,7 +22,6 @@ Gem::Specification.new do |s|
   
   s.rubyforge_project = 'opee'
 
-  s.add_development_dependency 'oterm'
   s.add_runtime_dependency 'oterm'
 
 end
